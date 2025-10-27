@@ -5,6 +5,12 @@
 //  Created by Giang Michael Dao on 10/27/25.
 //
 
+enum Screen {
+    case home
+    case profile
+    case settings
+}
+
 import SwiftUI
 
 struct ContentView: View {
