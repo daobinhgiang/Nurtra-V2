@@ -17,6 +17,7 @@ struct BlockAppsView: View {
     @State private var selectedApps = FamilyActivitySelection()
     @State private var showAppPicker = false
     @State private var errorMessage: String?
+    @State private var isLocked = false
     
     private let center = AuthorizationCenter.shared
     private let store = ManagedSettingsStore()
@@ -67,7 +68,6 @@ struct BlockAppsView: View {
                         }
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button("Done") {
-                                applyRestrictions()
                                 showAppPicker = false
                             }
                             .fontWeight(.semibold)
@@ -132,15 +132,22 @@ struct BlockAppsView: View {
             
             if !selectedApps.applicationTokens.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Blocked Apps")
-                        .font(.headline)
-                    Text("\(selectedApps.applicationTokens.count) app(s) currently blocked")
+                    HStack {
+                        Text("Selected Apps")
+                            .font(.headline)
+                        Spacer()
+                        Text(isLocked ? "🔒 Locked" : "🔓 Unlocked")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(isLocked ? .red : .green)
+                    }
+                    Text("\(selectedApps.applicationTokens.count) app(s) selected")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.green.opacity(0.1))
+                .background(isLocked ? Color.red.opacity(0.1) : Color.green.opacity(0.1))
                 .cornerRadius(10)
             }
             
@@ -162,17 +169,21 @@ struct BlockAppsView: View {
             
             if !selectedApps.applicationTokens.isEmpty {
                 Button(action: {
-                    clearRestrictions()
+                    if isLocked {
+                        unlockApps()
+                    } else {
+                        lockApps()
+                    }
                 }) {
                     HStack {
-                        Image(systemName: "xmark.circle.fill")
-                        Text("Unblock All Apps")
+                        Image(systemName: isLocked ? "lock.open.fill" : "lock.fill")
+                        Text(isLocked ? "Unlock Apps" : "Lock Apps")
                     }
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.red)
+                    .background(isLocked ? Color.green : Color.red)
                     .cornerRadius(10)
                 }
                 .padding(.horizontal)
@@ -226,21 +237,24 @@ struct BlockAppsView: View {
         }
     }
     
-    private func applyRestrictions() {
+    private func lockApps() {
         guard isAuthorized else { return }
         
         // Apply app restrictions
         store.shield.applications = selectedApps.applicationTokens
         store.shield.applicationCategories = ShieldSettings.ActivityCategoryPolicy.specific(selectedApps.categoryTokens)
         store.shield.webDomains = selectedApps.webDomainTokens
+        
+        isLocked = true
     }
     
-    private func clearRestrictions() {
-        // Clear all restrictions
+    private func unlockApps() {
+        // Clear restrictions but keep the selection
         store.shield.applications = nil
         store.shield.applicationCategories = nil
         store.shield.webDomains = nil
-        selectedApps = FamilyActivitySelection()
+        
+        isLocked = false
     }
 }
 

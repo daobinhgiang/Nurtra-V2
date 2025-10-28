@@ -20,7 +20,11 @@ struct ContentView: View {
     var body: some View {
         Group {
             if authManager.isAuthenticated {
-                MainAppView()
+                if authManager.needsOnboarding {
+                    OnboardingSurveyView()
+                } else {
+                    MainAppView()
+                }
             } else {
                 LoginView()
             }
