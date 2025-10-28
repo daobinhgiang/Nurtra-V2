@@ -55,6 +55,17 @@ struct MainAppView: View {
                 }
                 .padding(.horizontal)
                 
+                NavigationLink(destination: BlockAppsView()) {
+                    Text("Block Apps")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.purple)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
                 Button(action: {
                     do {
                         try authManager.signOut()

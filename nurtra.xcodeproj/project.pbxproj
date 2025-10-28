@@ -423,6 +423,7 @@
 				INFOPLIST_FILE = nurtra/Info.plist;
 				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleTypeRole = Editor;\n    CFBundleURLSchemes =     (\n        \"com.googleusercontent.apps.420916737489-jsnpodu2muqmvipgp0a62d5dub1ivu7a\"\n    );\n}";
 				INFOPLIST_KEY_NSCameraUsageDescription = "nurtra woud like camera usage to better support you with your recovery!";
+				INFOPLIST_KEY_NSFamilyControlsUsageDescription = "nurtra needs access to Screen Time to help you block distracting apps during your recovery.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -434,7 +435,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.psycholabs.nurtra;
+				PRODUCT_BUNDLE_IDENTIFIER = com.psycholabs.bedApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -460,6 +461,7 @@
 				INFOPLIST_FILE = nurtra/Info.plist;
 				INFOPLIST_KEY_CFBundleURLTypes = "{\n    CFBundleTypeRole = Editor;\n    CFBundleURLSchemes =     (\n        \"com.googleusercontent.apps.420916737489-jsnpodu2muqmvipgp0a62d5dub1ivu7a\"\n    );\n}";
 				INFOPLIST_KEY_NSCameraUsageDescription = "nurtra woud like camera usage to better support you with your recovery!";
+				INFOPLIST_KEY_NSFamilyControlsUsageDescription = "nurtra needs access to Screen Time to help you block distracting apps during your recovery.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -471,7 +473,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.psycholabs.nurtra;
+				PRODUCT_BUNDLE_IDENTIFIER = com.psycholabs.bedApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
