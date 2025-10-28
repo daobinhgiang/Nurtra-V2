@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseCore
+import GoogleSignIn
 
 
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -16,15 +17,23 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
     return true
   }
+  
+  func application(_ app: UIApplication,
+                   open url: URL,
+                   options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+    return GIDSignIn.sharedInstance.handle(url)
+  }
 }
 
 @main
 struct Nurtra_V2App: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject private var authManager = AuthenticationManager()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(authManager)
         }
     }
 }
