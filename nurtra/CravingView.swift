@@ -9,12 +9,31 @@ import SwiftUI
 import AVFoundation
 
 struct CravingView: View {
+    @EnvironmentObject var timerManager: TimerManager
     @State private var showSurvey = false
 
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 16) {
-                // Camera preview at the top, expanding vertically as much as possible
+                // Timer display at the top
+                VStack(spacing: 8) {
+                    Text("Binge-free Time")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+                    
+                    Text(timerManager.timeString(from: timerManager.elapsedTime))
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundColor(timerManager.isTimerRunning ? .green : .primary)
+                        .monospacedDigit()
+                }
+                .padding(.vertical, 12)
+                .padding(.horizontal)
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .padding(.horizontal, geometry.size.width * 0.03)
+                
+                // Camera preview, expanding vertically as much as possible
                 CameraView()
                     .frame(width: geometry.size.width * 0.94) // near full width, keep some side padding
                     .frame(maxHeight: .infinity, alignment: .top) // let it expand vertically
@@ -25,6 +44,10 @@ struct CravingView: View {
                 HStack(spacing: 12) {
                     // Left: I just binged (red)
                     Button(action: {
+                        // Stop the timer if it's running
+                        if timerManager.isTimerRunning {
+                            timerManager.stopTimer()
+                        }
                         showSurvey = true
                     }) {
                         Text("I just binged")
@@ -72,5 +95,6 @@ struct CravingView: View {
 #Preview {
     NavigationStack {
         CravingView()
+            .environmentObject(TimerManager())
     }
 }

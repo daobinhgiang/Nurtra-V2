@@ -18,7 +18,7 @@ struct nurtra_timer_widgetControl: ControlWidget {
             provider: Provider()
         ) { value in
             ControlWidgetToggle(
-                "Start Timer",
+                "Start Nurtra Timer",
                 isOn: value.isRunning,
                 action: StartTimerIntent(value.name)
             ) { isRunning in

@@ -30,6 +30,7 @@ struct ContentView: View {
 
 struct MainAppView: View {
     @EnvironmentObject var authManager: AuthenticationManager
+    @EnvironmentObject var timerManager: TimerManager
     
     var body: some View {
         NavigationStack {
@@ -40,6 +41,37 @@ struct MainAppView: View {
                 Text("Hello, \(authManager.user?.email ?? "User")!")
                     .font(.title2)
                     .fontWeight(.semibold)
+                
+                Spacer()
+                
+                // Timer Display - Centered in the middle of the screen
+                VStack(spacing: 20) {
+                    Text(timerManager.timeString(from: timerManager.elapsedTime))
+                        .font(.system(size: 60, weight: .bold, design: .rounded))
+                        .foregroundColor(timerManager.isTimerRunning ? .green : .primary)
+                        .monospacedDigit()
+                    
+                    // Only show button when timer is not running
+                    if !timerManager.isTimerRunning {
+                        Button(action: {
+                            timerManager.startTimer()
+                        }) {
+                            HStack {
+                                Image(systemName: "play.circle.fill")
+                                    .font(.title2)
+                                Text("Binge-free Timer")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.green)
+                            .cornerRadius(10)
+                        }
+                        .padding(.horizontal)
+                    }
+                }
                 
                 Spacer()
                 
@@ -94,4 +126,5 @@ struct MainAppView: View {
 #Preview {
     ContentView()
         .environmentObject(AuthenticationManager())
+        .environmentObject(TimerManager())
 }
