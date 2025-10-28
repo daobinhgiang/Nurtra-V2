@@ -34,16 +34,52 @@ struct ContentView: View {
 
 struct MainAppView: View {
     @EnvironmentObject var authManager: AuthenticationManager
+    @EnvironmentObject var timerManager: TimerManager
     
     var body: some View {
         NavigationStack {
-            VStack {
-                Image(systemName: "globe")
-                    .imageScale(.large)
-                    .foregroundStyle(.tint)
-                Text("Hello, \(authManager.user?.email ?? "User")!")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+            VStack {                
+                // Display overcome count
+                VStack(spacing: 8) {
+                    Text("Urge Overcame count")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    Text("\(authManager.overcomeCount)")
+                        .font(.system(size: 48, weight: .bold, design: .rounded))
+                        .foregroundColor(.blue)
+                }
+                .padding(.top, 20)
+                
+                Spacer()
+                
+                // Timer Display - Centered in the middle of the screen
+                VStack(spacing: 20) {
+                    Text(timerManager.timeString(from: timerManager.elapsedTime))
+                        .font(.system(size: 60, weight: .bold, design: .rounded))
+                        .foregroundColor(timerManager.isTimerRunning ? .green : .primary)
+                        .monospacedDigit()
+                    
+                    // Only show button when timer is not running
+                    if !timerManager.isTimerRunning {
+                        Button(action: {
+                            timerManager.startTimer()
+                        }) {
+                            HStack {
+                                Image(systemName: "play.circle.fill")
+                                    .font(.title2)
+                                Text("Binge-free Timer")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.green)
+                            .cornerRadius(10)
+                        }
+                        .padding(.horizontal)
+                    }
+                }
                 
                 Spacer()
                 
@@ -90,7 +126,9 @@ struct MainAppView: View {
                 .padding(.top, 8)
             }
             .padding()
-            .navigationTitle("Nurtra V2")
+            .task {
+                await authManager.fetchOvercomeCount()
+            }
         }
     }
 }
@@ -98,4 +136,5 @@ struct MainAppView: View {
 #Preview {
     ContentView()
         .environmentObject(AuthenticationManager())
+        .environmentObject(TimerManager())
 }

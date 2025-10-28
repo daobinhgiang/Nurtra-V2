@@ -9,6 +9,8 @@ import SwiftUI
 
 struct BingeSurveyView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var timerManager: TimerManager
+    @State private var shouldNavigateToHome = false
 
     @State private var step: Int = 0
 
@@ -98,13 +100,10 @@ struct BingeSurveyView: View {
                     }
                     .buttonStyle(PrimaryCapsuleStyle())
                 } else {
-                    Button("Finish") {
+                    Button("Submit") {
                         dismissKeyboard()
-                        // No saving yet; pop back to home.
-                        dismiss()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                            dismiss()
-                        }
+                        // Navigate back to ContentView (home screen)
+                        shouldNavigateToHome = true
                     }
                     .buttonStyle(PrimaryCapsuleStyle())
                 }
@@ -117,6 +116,9 @@ struct BingeSurveyView: View {
         .navigationTitle("Binge Survey")
         .contentShape(Rectangle())
         .onTapGesture { dismissKeyboard() }
+        .navigationDestination(isPresented: $shouldNavigateToHome) {
+            ContentView()
+        }
     }
 
     private func titleForStep(_ step: Int) -> String {

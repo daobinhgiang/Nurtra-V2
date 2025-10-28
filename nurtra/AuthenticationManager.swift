@@ -20,6 +20,7 @@ class AuthenticationManager: ObservableObject {
     @Published var isAuthenticated = false
     @Published var needsOnboarding = false
     @Published var errorMessage: String?
+    @Published var overcomeCount: Int = 0
     
     private var currentNonce: String?
     private let firestoreManager = FirestoreManager()
@@ -166,6 +167,51 @@ class AuthenticationManager: ObservableObject {
         } catch {
             self.errorMessage = error.localizedDescription
             throw error
+        }
+    }
+    
+    // MARK: - Overcome Count
+    
+    func fetchOvercomeCount() async {
+        guard let userId = user?.uid else { return }
+        
+        let db = Firestore.firestore()
+        let docRef = db.collection("users").document(userId)
+        
+        do {
+            let document = try await docRef.getDocument()
+            if document.exists {
+                self.overcomeCount = document.data()?["overcomeCount"] as? Int ?? 0
+            } else {
+                // Create document with initial count of 0
+                try await docRef.setData(["overcomeCount": 0])
+                self.overcomeCount = 0
+            }
+        } catch {
+            print("Error fetching overcome count: \(error.localizedDescription)")
+            self.overcomeCount = 0
+        }
+    }
+    
+    func incrementOvercomeCount() async {
+        guard let userId = user?.uid else { return }
+        
+        let db = Firestore.firestore()
+        let docRef = db.collection("users").document(userId)
+        
+        do {
+            // Increment the count locally
+            let newCount = overcomeCount + 1
+            
+            // Update in Firestore
+            try await docRef.setData([
+                "overcomeCount": newCount
+            ], merge: true)
+            
+            // Update local state
+            self.overcomeCount = newCount
+        } catch {
+            print("Error incrementing overcome count: \(error.localizedDescription)")
         }
     }
     
