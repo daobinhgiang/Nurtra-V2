@@ -31,7 +31,7 @@ struct CameraView: UIViewRepresentable {
         }
         
         let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        previewLayer.videoGravity = .resizeAspectFill
+        previewLayer.videoGravity = .resizeAspect
         previewLayer.frame = view.bounds
         view.layer.addSublayer(previewLayer)
         

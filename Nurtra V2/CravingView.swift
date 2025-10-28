@@ -10,21 +10,20 @@ import AVFoundation
 
 struct CravingView: View {
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Craving Page")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            
-            // Camera preview widget
-            CameraView()
-                .frame(width: 350, height: 350)
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .shadow(radius: 10)
-            
-            Text("This is an empty page for cravings")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .padding()
+        GeometryReader { geometry in
+            VStack {
+                Spacer()
+                
+                // Camera preview widget
+                CameraView()
+                    .frame(width: geometry.size.width * 0.8)
+                    .frame(maxHeight: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .shadow(radius: 10)
+                
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationTitle("Craving")
         .navigationBarTitleDisplayMode(.large)
