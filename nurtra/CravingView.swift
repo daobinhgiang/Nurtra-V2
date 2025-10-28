@@ -36,7 +36,7 @@ struct CravingView: View {
                 .padding(.horizontal, 20)
                 .background(Color.black.opacity(0.6))
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .padding(.top, 50) // Safe area padding
+                .padding(.top, 20) // Reduced padding to move higher
                 
                 Spacer()
                 
