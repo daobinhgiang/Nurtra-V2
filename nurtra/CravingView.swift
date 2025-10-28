@@ -10,6 +10,8 @@ import AVFoundation
 
 struct CravingView: View {
     @EnvironmentObject var timerManager: TimerManager
+    @EnvironmentObject var authManager: AuthenticationManager
+    @Environment(\.dismiss) var dismiss
     @State private var showSurvey = false
 
     var body: some View {
@@ -62,7 +64,10 @@ struct CravingView: View {
 
                     // Right: I overcame it (blue)
                     Button(action: {
-                        // TODO: Handle "I overcame it"
+                        Task {
+                            await authManager.incrementOvercomeCount()
+                            dismiss()
+                        }
                     }) {
                         Text("I overcame it")
                             .font(.headline)
@@ -98,5 +103,6 @@ struct CravingView: View {
     NavigationStack {
         CravingView()
             .environmentObject(TimerManager())
+            .environmentObject(AuthenticationManager())
     }
 }
