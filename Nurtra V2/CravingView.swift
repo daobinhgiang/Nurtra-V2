@@ -6,13 +6,20 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 struct CravingView: View {
     var body: some View {
-        VStack {
+        VStack(spacing: 20) {
             Text("Craving Page")
                 .font(.largeTitle)
                 .fontWeight(.bold)
+            
+            // Camera preview widget
+            CameraView()
+                .frame(width: 350, height: 350)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .shadow(radius: 10)
             
             Text("This is an empty page for cravings")
                 .font(.body)
