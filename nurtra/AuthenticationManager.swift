@@ -12,25 +12,41 @@ import AuthenticationServices
 import CryptoKit
 import Combine
 import FirebaseCore
+import FirebaseFirestore
 
 @MainActor
 class AuthenticationManager: ObservableObject {
     @Published var user: User?
     @Published var isAuthenticated = false
+    @Published var needsOnboarding = false
     @Published var errorMessage: String?
     
     private var currentNonce: String?
+    private let firestoreManager = FirestoreManager()
     
     init() {
         // Check if user is already signed in
         self.user = Auth.auth().currentUser
         self.isAuthenticated = user != nil
         
+        // Check onboarding status if user is authenticated
+        if isAuthenticated {
+            Task {
+                await checkOnboardingStatus()
+            }
+        }
+        
         // Listen for auth state changes
         Auth.auth().addStateDidChangeListener { [weak self] _, user in
             Task { @MainActor in
                 self?.user = user
                 self?.isAuthenticated = user != nil
+                
+                if user != nil {
+                    await self?.checkOnboardingStatus()
+                } else {
+                    self?.needsOnboarding = false
+                }
             }
         }
     }
@@ -166,6 +182,23 @@ class AuthenticationManager: ObservableObject {
             self.errorMessage = error.localizedDescription
             throw error
         }
+    }
+    
+    // MARK: - Onboarding Methods
+    
+    private func checkOnboardingStatus() async {
+        do {
+            let onboardingCompleted = try await firestoreManager.checkOnboardingCompletion()
+            self.needsOnboarding = !onboardingCompleted
+        } catch {
+            print("Error checking onboarding status: \(error)")
+            // Default to needing onboarding if we can't check
+            self.needsOnboarding = true
+        }
+    }
+    
+    func markOnboardingComplete() {
+        self.needsOnboarding = false
     }
     
     // MARK: - Helper Methods
