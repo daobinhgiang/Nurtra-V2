@@ -74,10 +74,10 @@ class FirestoreManager: ObservableObject {
             throw FirestoreError.noAuthenticatedUser
         }
         
-        // Create a dictionary with numbered fields (quote1, quote2, etc.)
+        // Create a dictionary with numbered fields (1, 2, 3, etc.)
         var quotesData: [String: Any] = [:]
         for (index, quote) in quotes.enumerated() {
-            quotesData["quote\(index + 1)"] = quote
+            quotesData["\(index + 1)"] = quote
         }
         
         let userData: [String: Any] = [
@@ -104,12 +104,12 @@ class FirestoreManager: ObservableObject {
             return []
         }
         
-        // Extract quotes in order (quote1, quote2, etc.)
+        // Extract quotes in order (1, 2, 3, etc.)
         var quotes: [MotivationalQuote] = []
         for i in 1...10 {
-            if let text = quotesData["quote\(i)"] {
+            if let text = quotesData["\(i)"] {
                 quotes.append(MotivationalQuote(
-                    id: "quote\(i)",
+                    id: "\(i)",
                     text: text,
                     order: i,
                     createdAt: generatedAt.dateValue()

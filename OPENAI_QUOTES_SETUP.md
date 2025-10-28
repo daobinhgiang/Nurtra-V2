@@ -68,7 +68,7 @@ service cloud.firestore {
 5. **Verify in Firestore Console**:
    - Navigate to Firestore Database
    - Go to `users/{userId}` document
-   - You should see a `motivationalQuotes` field with 10 numbered quotes (quote1, quote2, etc.)
+   - You should see a `motivationalQuotes` field with 10 numbered quotes (1, 2, 3, etc.)
    - You should also see `motivationalQuotesGeneratedAt` timestamp
 
 ## How It Works
@@ -149,11 +149,11 @@ users/
         recoveryValues: [...]
       }
     - motivationalQuotes: {
-        quote1: "Your first personalized quote...",
-        quote2: "Your second personalized quote...",
-        quote3: "Your third personalized quote...",
+        "1": "Your first personalized quote...",
+        "2": "Your second personalized quote...",
+        "3": "Your third personalized quote...",
         ...
-        quote10: "Your tenth personalized quote..."
+        "10": "Your tenth personalized quote..."
       }
     - motivationalQuotesGeneratedAt: Timestamp
 ```
@@ -161,7 +161,7 @@ users/
 **Benefits of this structure:**
 - All user data in one document (easier to query)
 - Consistent with onboardingResponses format
-- Simple numbered fields (quote1, quote2, etc.)
+- Simple numbered fields (1, 2, 3, etc.)
 - No subcollections needed
 - Single read/write operation
 
