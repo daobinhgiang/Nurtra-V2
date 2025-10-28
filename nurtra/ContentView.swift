@@ -35,6 +35,18 @@ struct ContentView: View {
                         .cornerRadius(10)
                 }
                 .padding(.horizontal)
+                
+                NavigationLink(destination: BlockAppsView()) {
+                    Text("Block Apps")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.purple)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
             }
             .padding()
             .navigationTitle("Nurtra V2")
