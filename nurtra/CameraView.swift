@@ -20,7 +20,7 @@ final class CameraUIView: UIView {
     }
 
     required init?(coder: NSCoder) {
-        self.previewLayer = AVCaptureVideoPreviewLayer(session: AVCaptureSession())
+        self.previewLayer = AVCaptureVideoPreviewLayer(session: AVCaptureSession()) 
         super.init(coder: coder)
         setupSession()
         setupPreview()

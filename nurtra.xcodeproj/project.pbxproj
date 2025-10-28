@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		CA3395BE2EAFFCE8003BBE6E /* Nurtra V2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Nurtra V2.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA3395BE2EAFFCE8003BBE6E /* nurtra.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = nurtra.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		CA3395C02EAFFCE8003BBE6E /* Nurtra V2 */ = {
+		CA3395C02EAFFCE8003BBE6E /* nurtra */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Nurtra V2";
+			path = nurtra;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +32,7 @@
 		CA3395B52EAFFCE8003BBE6E = {
 			isa = PBXGroup;
 			children = (
-				CA3395C02EAFFCE8003BBE6E /* Nurtra V2 */,
+				CA3395C02EAFFCE8003BBE6E /* nurtra */,
 				CA3395BF2EAFFCE8003BBE6E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -40,7 +40,7 @@
 		CA3395BF2EAFFCE8003BBE6E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CA3395BE2EAFFCE8003BBE6E /* Nurtra V2.app */,
+				CA3395BE2EAFFCE8003BBE6E /* nurtra.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CA3395BD2EAFFCE8003BBE6E /* Nurtra V2 */ = {
+		CA3395BD2EAFFCE8003BBE6E /* nurtra */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CA3395C92EAFFCE9003BBE6E /* Build configuration list for PBXNativeTarget "Nurtra V2" */;
+			buildConfigurationList = CA3395C92EAFFCE9003BBE6E /* Build configuration list for PBXNativeTarget "nurtra" */;
 			buildPhases = (
 				CA3395BA2EAFFCE8003BBE6E /* Sources */,
 				CA3395BB2EAFFCE8003BBE6E /* Frameworks */,
@@ -61,13 +61,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				CA3395C02EAFFCE8003BBE6E /* Nurtra V2 */,
+				CA3395C02EAFFCE8003BBE6E /* nurtra */,
 			);
-			name = "Nurtra V2";
+			name = nurtra;
 			packageProductDependencies = (
 			);
 			productName = "Nurtra V2";
-			productReference = CA3395BE2EAFFCE8003BBE6E /* Nurtra V2.app */;
+			productReference = CA3395BE2EAFFCE8003BBE6E /* nurtra.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +85,7 @@
 					};
 				};
 			};
-			buildConfigurationList = CA3395B92EAFFCE8003BBE6E /* Build configuration list for PBXProject "Nurtra V2" */;
+			buildConfigurationList = CA3395B92EAFFCE8003BBE6E /* Build configuration list for PBXProject "nurtra" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -99,7 +99,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CA3395BD2EAFFCE8003BBE6E /* Nurtra V2 */,
+				CA3395BD2EAFFCE8003BBE6E /* nurtra */,
 			);
 		};
 /* End PBXProject section */
@@ -315,7 +315,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CA3395B92EAFFCE8003BBE6E /* Build configuration list for PBXProject "Nurtra V2" */ = {
+		CA3395B92EAFFCE8003BBE6E /* Build configuration list for PBXProject "nurtra" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CA3395C72EAFFCE9003BBE6E /* Debug */,
@@ -324,7 +324,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CA3395C92EAFFCE9003BBE6E /* Build configuration list for PBXNativeTarget "Nurtra V2" */ = {
+		CA3395C92EAFFCE9003BBE6E /* Build configuration list for PBXNativeTarget "nurtra" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CA3395CA2EAFFCE9003BBE6E /* Debug */,
