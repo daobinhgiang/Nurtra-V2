@@ -66,6 +66,59 @@ class FirestoreManager: ObservableObject {
         
         try await db.collection("users").document(userId).setData(userData, merge: true)
     }
+    
+    // MARK: - Motivational Quotes Methods
+    
+    func saveMotivationalQuotes(quotes: [String]) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw FirestoreError.noAuthenticatedUser
+        }
+        
+        // Create a dictionary with numbered fields (quote1, quote2, etc.)
+        var quotesData: [String: Any] = [:]
+        for (index, quote) in quotes.enumerated() {
+            quotesData["quote\(index + 1)"] = quote
+        }
+        
+        let userData: [String: Any] = [
+            "motivationalQuotes": quotesData,
+            "motivationalQuotesGeneratedAt": Timestamp(date: Date())
+        ]
+        
+        try await db.collection("users").document(userId).setData(userData, merge: true)
+        
+        print("✅ Successfully saved \(quotes.count) motivational quotes to Firestore")
+    }
+    
+    func fetchMotivationalQuotes() async throws -> [MotivationalQuote] {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw FirestoreError.noAuthenticatedUser
+        }
+        
+        let document = try await db.collection("users").document(userId).getDocument()
+        
+        guard document.exists,
+              let data = document.data(),
+              let quotesData = data["motivationalQuotes"] as? [String: String],
+              let generatedAt = data["motivationalQuotesGeneratedAt"] as? Timestamp else {
+            return []
+        }
+        
+        // Extract quotes in order (quote1, quote2, etc.)
+        var quotes: [MotivationalQuote] = []
+        for i in 1...10 {
+            if let text = quotesData["quote\(i)"] {
+                quotes.append(MotivationalQuote(
+                    id: "quote\(i)",
+                    text: text,
+                    order: i,
+                    createdAt: generatedAt.dateValue()
+                ))
+            }
+        }
+        
+        return quotes
+    }
 }
 
 // MARK: - Data Models
@@ -79,6 +132,13 @@ struct OnboardingSurveyResponses {
     let bingeTriggers: [String]
     let whatMattersMost: [String]
     let recoveryValues: [String]
+}
+
+struct MotivationalQuote: Identifiable {
+    let id: String
+    let text: String
+    let order: Int
+    let createdAt: Date
 }
 
 // MARK: - Error Handling

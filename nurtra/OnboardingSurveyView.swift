@@ -317,6 +317,9 @@ struct OnboardingSurveyView: View {
             // Update auth manager to mark onboarding as complete
             authManager.markOnboardingComplete()
             
+            // Generate motivational quotes in background (doesn't block user)
+            QuoteGenerationService.generateQuotesInBackground(from: responses)
+            
         } catch {
             print("Error saving onboarding survey: \(error)")
             // TODO: Show error message to user
