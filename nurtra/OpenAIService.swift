@@ -88,7 +88,7 @@ class OpenAIService {
         let recoveryValues = responses.recoveryValues.joined(separator: ", ")
         
         return """
-        Based on the following information about a person's binge eating recovery journey, generate exactly 10 personalized, empowering motivational quotes. Make each quote unique, authentic, and deeply connected to their specific situation and values.
+        Based on the following information about a person's binge eating recovery journey, generate exactly 10 personalized quotes that sound like they're coming from a close peer who's been there and understands. Make each quote unique, authentic, and deeply connected to their specific situation and values.
         
         Their Journey:
         - Duration of struggle: \(struggleDuration)
@@ -102,12 +102,16 @@ class OpenAIService {
         
         Requirements:
         1. Generate exactly 10 quotes
-        2. Each quote should be 1-2 sentences
-        3. Make them personal to their specific struggles and values
-        4. Focus on hope, strength, growth, and their unique vision
-        5. Avoid clichés; make each quote feel authentic and tailored
-        6. Use compassionate, non-judgmental language
-        7. Format as a numbered list (1. Quote 1\n2. Quote 2\n...)
+        2. Each quote should be exactly 1 sentence
+        3. Write like a close friend/peer speaking casually and directly
+        4. Structure the quotes as follows:
+           - Quotes 1-3: Guilt trip them for relapsing (but from a caring place)
+           - Quotes 4-7: Remind them of what they value and their "why"
+           - Quotes 8-10: Motivate and encourage them forward
+        5. Make them personal to their specific struggles, triggers, and values
+        6. Use casual, peer-to-peer language (like "you know this isn't you" or "remember when you told me...")
+        7. Reference their specific journey details naturally
+        8. Format as a numbered list (1. Quote 1\n2. Quote 2\n...)
         
         Generate the 10 quotes now:
         """
