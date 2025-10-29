@@ -30,10 +30,11 @@ class AuthenticationManager: ObservableObject {
         self.user = Auth.auth().currentUser
         self.isAuthenticated = user != nil
         
-        // Check onboarding status if user is authenticated
+        // Check onboarding status and fetch overcome count if user is authenticated
         if isAuthenticated {
             Task {
                 await checkOnboardingStatus()
+                await fetchOvercomeCount()
             }
         }
         
@@ -45,8 +46,10 @@ class AuthenticationManager: ObservableObject {
                 
                 if user != nil {
                     await self?.checkOnboardingStatus()
+                    await self?.fetchOvercomeCount()
                 } else {
                     self?.needsOnboarding = false
+                    self?.overcomeCount = 0
                 }
             }
         }
@@ -60,6 +63,7 @@ class AuthenticationManager: ObservableObject {
             self.user = result.user
             self.isAuthenticated = true
             self.errorMessage = nil
+            await fetchOvercomeCount()
         } catch {
             self.errorMessage = error.localizedDescription
             throw error
@@ -72,6 +76,7 @@ class AuthenticationManager: ObservableObject {
             self.user = result.user
             self.isAuthenticated = true
             self.errorMessage = nil
+            await fetchOvercomeCount()
         } catch {
             self.errorMessage = error.localizedDescription
             throw error
@@ -110,6 +115,7 @@ class AuthenticationManager: ObservableObject {
             self.user = authResult.user
             self.isAuthenticated = true
             self.errorMessage = nil
+            await fetchOvercomeCount()
         } catch {
             self.errorMessage = error.localizedDescription
             throw error
@@ -146,6 +152,7 @@ class AuthenticationManager: ObservableObject {
             self.user = result.user
             self.isAuthenticated = true
             self.errorMessage = nil
+            await fetchOvercomeCount()
         } catch {
             self.errorMessage = error.localizedDescription
             throw error

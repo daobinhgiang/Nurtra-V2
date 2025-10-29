@@ -127,6 +127,7 @@ struct MainAppView: View {
             }
             .padding()
             .task {
+                // Backup fetch in case the initial fetch in AuthenticationManager failed
                 await authManager.fetchOvercomeCount()
             }
         }
