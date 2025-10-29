@@ -30,12 +30,16 @@ struct Nurtra_V2App: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var authManager = AuthenticationManager()
     @StateObject private var timerManager = TimerManager()
+    @StateObject private var firestoreManager = FirestoreManager()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(authManager)
                 .environmentObject(timerManager)
+                .onAppear {
+                    timerManager.setFirestoreManager(firestoreManager)
+                }
         }
     }
 }

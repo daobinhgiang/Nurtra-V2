@@ -10,7 +10,11 @@ import Foundation
 @MainActor
 class QuoteGenerationService {
     private let openAIService = OpenAIService()
-    private let firestoreManager = FirestoreManager()
+    private let firestoreManager: FirestoreManager
+    
+    init(firestoreManager: FirestoreManager) {
+        self.firestoreManager = firestoreManager
+    }
     
     // MARK: - Generate and Save Quotes
     
@@ -63,10 +67,10 @@ class QuoteGenerationService {
     
     // MARK: - Background Task Helper
     
-    static func generateQuotesInBackground(from responses: OnboardingSurveyResponses) {
+    static func generateQuotesInBackground(from responses: OnboardingSurveyResponses, firestoreManager: FirestoreManager) {
         // Use Task.detached to run in background without blocking UI
         Task.detached(priority: .background) {
-            await QuoteGenerationService().generateAndSaveQuotes(from: responses)
+            await QuoteGenerationService(firestoreManager: firestoreManager).generateAndSaveQuotes(from: responses)
         }
     }
 }

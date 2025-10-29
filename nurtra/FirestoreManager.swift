@@ -71,6 +71,7 @@ class FirestoreManager: ObservableObject {
     
     func saveMotivationalQuotes(quotes: [String]) async throws {
         guard let userId = Auth.auth().currentUser?.uid else {
+            print("❌ No authenticated user found when saving quotes")
             throw FirestoreError.noAuthenticatedUser
         }
         
@@ -85,9 +86,13 @@ class FirestoreManager: ObservableObject {
             "motivationalQuotesGeneratedAt": Timestamp(date: Date())
         ]
         
-        try await db.collection("users").document(userId).setData(userData, merge: true)
-        
-        print("✅ Successfully saved \(quotes.count) motivational quotes to Firestore")
+        do {
+            try await db.collection("users").document(userId).setData(userData, merge: true)
+            print("✅ Successfully saved \(quotes.count) motivational quotes to Firestore")
+        } catch {
+            print("❌ Failed to save quotes to Firestore: \(error.localizedDescription)")
+            throw FirestoreError.saveFailed
+        }
     }
     
     func fetchMotivationalQuotes() async throws -> [MotivationalQuote] {
@@ -119,6 +124,124 @@ class FirestoreManager: ObservableObject {
         
         return quotes
     }
+    
+    // MARK: - Timer Methods
+    
+    func saveTimerStart(startTime: Date) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw FirestoreError.noAuthenticatedUser
+        }
+        
+        let timerData: [String: Any] = [
+            "timerStartTime": Timestamp(date: startTime),
+            "timerIsRunning": true,
+            "timerLastUpdated": Timestamp(date: Date())
+        ]
+        
+        try await db.collection("users").document(userId).setData(timerData, merge: true)
+    }
+    
+    func fetchTimerStart() async throws -> TimerData? {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw FirestoreError.noAuthenticatedUser
+        }
+        
+        let document = try await db.collection("users").document(userId).getDocument()
+        
+        guard document.exists,
+              let data = document.data(),
+              let startTimeTimestamp = data["timerStartTime"] as? Timestamp else {
+            return nil
+        }
+        
+        let isRunning = data["timerIsRunning"] as? Bool ?? false
+        let startTime = startTimeTimestamp.dateValue()
+        let elapsedTime = data["timerElapsedTime"] as? TimeInterval  // Fetch stored elapsed time
+        
+        return TimerData(startTime: startTime, isRunning: isRunning, elapsedTime: elapsedTime)
+    }
+    
+    func stopTimer(elapsedTime: TimeInterval) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw FirestoreError.noAuthenticatedUser
+        }
+        
+        let timerData: [String: Any] = [
+            "timerIsRunning": false,
+            "timerElapsedTime": elapsedTime,  // Store elapsed time when stopped
+            "timerLastUpdated": Timestamp(date: Date())
+        ]
+        
+        try await db.collection("users").document(userId).setData(timerData, merge: true)
+    }
+    
+    func clearTimer() async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw FirestoreError.noAuthenticatedUser
+        }
+        
+        let timerData: [String: Any] = [
+            "timerStartTime": FieldValue.delete(),
+            "timerIsRunning": false,
+            "timerLastUpdated": Timestamp(date: Date())
+        ]
+        
+        try await db.collection("users").document(userId).setData(timerData, merge: true)
+    }
+    
+    // MARK: - Binge-Free Period Methods
+    
+    func logBingeFreePeriod(startTime: Date, endTime: Date, duration: TimeInterval) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw FirestoreError.noAuthenticatedUser
+        }
+        
+        let periodData: [String: Any] = [
+            "startTime": Timestamp(date: startTime),
+            "endTime": Timestamp(date: endTime),
+            "duration": duration,
+            "createdAt": Timestamp(date: Date())
+        ]
+        
+        // Add to a subcollection for better querying
+        try await db.collection("users")
+            .document(userId)
+            .collection("bingeFreePeriods")
+            .addDocument(data: periodData)
+        
+        print("✅ Logged binge-free period: \(duration) seconds")
+    }
+    
+    func fetchRecentBingeFreePeriods(limit: Int = 3) async throws -> [BingeFreePeriod] {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw FirestoreError.noAuthenticatedUser
+        }
+        
+        let snapshot = try await db.collection("users")
+            .document(userId)
+            .collection("bingeFreePeriods")
+            .order(by: "createdAt", descending: true)
+            .limit(to: limit)
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { doc -> BingeFreePeriod? in
+            let data = doc.data()
+            guard let startTimeTimestamp = data["startTime"] as? Timestamp,
+                  let endTimeTimestamp = data["endTime"] as? Timestamp,
+                  let duration = data["duration"] as? TimeInterval,
+                  let createdAtTimestamp = data["createdAt"] as? Timestamp else {
+                return nil
+            }
+            
+            return BingeFreePeriod(
+                id: doc.documentID,
+                startTime: startTimeTimestamp.dateValue(),
+                endTime: endTimeTimestamp.dateValue(),
+                duration: duration,
+                createdAt: createdAtTimestamp.dateValue()
+            )
+        }
+    }
 }
 
 // MARK: - Data Models
@@ -138,6 +261,20 @@ struct MotivationalQuote: Identifiable {
     let id: String
     let text: String
     let order: Int
+    let createdAt: Date
+}
+
+struct TimerData {
+    let startTime: Date
+    let isRunning: Bool
+    let elapsedTime: TimeInterval?  // Store the elapsed time when timer is stopped
+}
+
+struct BingeFreePeriod: Identifiable {
+    let id: String
+    let startTime: Date
+    let endTime: Date
+    let duration: TimeInterval
     let createdAt: Date
 }
 

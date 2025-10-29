@@ -318,7 +318,7 @@ struct OnboardingSurveyView: View {
             authManager.markOnboardingComplete()
             
             // Generate motivational quotes in background (doesn't block user)
-            QuoteGenerationService.generateQuotesInBackground(from: responses)
+            QuoteGenerationService.generateQuotesInBackground(from: responses, firestoreManager: firestoreManager)
             
         } catch {
             print("Error saving onboarding survey: \(error)")

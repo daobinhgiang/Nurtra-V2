@@ -10,7 +10,7 @@ import SwiftUI
 struct BingeSurveyView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var timerManager: TimerManager
-    @State private var shouldNavigateToHome = false
+    let onComplete: () -> Void
 
     @State private var step: Int = 0
 
@@ -102,8 +102,12 @@ struct BingeSurveyView: View {
                 } else {
                     Button("Submit") {
                         dismissKeyboard()
-                        // Navigate back to ContentView (home screen)
-                        shouldNavigateToHome = true
+                        // Dismiss this view first
+                        dismiss()
+                        // Then trigger the parent to dismiss too
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            onComplete()
+                        }
                     }
                     .buttonStyle(PrimaryCapsuleStyle())
                 }
@@ -116,9 +120,6 @@ struct BingeSurveyView: View {
         .navigationTitle("Binge Survey")
         .contentShape(Rectangle())
         .onTapGesture { dismissKeyboard() }
-        .navigationDestination(isPresented: $shouldNavigateToHome) {
-            ContentView()
-        }
     }
 
     private func titleForStep(_ step: Int) -> String {

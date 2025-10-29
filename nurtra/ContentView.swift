@@ -35,9 +35,13 @@ struct ContentView: View {
 struct MainAppView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @EnvironmentObject var timerManager: TimerManager
+    @StateObject private var firestoreManager = FirestoreManager()
+    @State private var navigationPath = NavigationPath()
+    @State private var recentPeriods: [BingeFreePeriod] = []
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
+            ScrollView {
             VStack {                
                 // Display overcome count
                 VStack(spacing: 8) {
@@ -62,7 +66,9 @@ struct MainAppView: View {
                     // Only show button when timer is not running
                     if !timerManager.isTimerRunning {
                         Button(action: {
-                            timerManager.startTimer()
+                            Task {
+                                await timerManager.startTimer()
+                            }
                         }) {
                             HStack {
                                 Image(systemName: "play.circle.fill")
@@ -79,6 +85,42 @@ struct MainAppView: View {
                         }
                         .padding(.horizontal)
                     }
+                }
+                
+                Spacer()
+                
+                // Recent Binge-Free Periods Section
+                if !recentPeriods.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Recent Binge-Free Periods")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal)
+                        
+                        ForEach(recentPeriods) { period in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(timerManager.timeString(from: period.duration))
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.primary)
+                                    
+                                    Text(formatDate(period.endTime))
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "clock.fill")
+                                    .foregroundColor(.blue)
+                                    .font(.title3)
+                            }
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                        }
+                    }
+                    .padding(.vertical)
                 }
                 
                 Spacer()
@@ -126,11 +168,42 @@ struct MainAppView: View {
                 .padding(.top, 8)
             }
             .padding()
+            }
+            .refreshable {
+                // Allow pull-to-refresh
+                await fetchRecentPeriods()
+                await authManager.fetchOvercomeCount()
+            }
             .task {
                 // Backup fetch in case the initial fetch in AuthenticationManager failed
                 await authManager.fetchOvercomeCount()
+                // Fetch timer from Firestore on view load
+                await timerManager.fetchTimerFromFirestore()
+                // Fetch recent binge-free periods
+                await fetchRecentPeriods()
+            }
+            .onAppear {
+                // Refresh periods when view appears (e.g., after coming back from survey)
+                Task {
+                    await fetchRecentPeriods()
+                }
             }
         }
+    }
+    
+    private func fetchRecentPeriods() async {
+        do {
+            recentPeriods = try await firestoreManager.fetchRecentBingeFreePeriods(limit: 3)
+        } catch {
+            print("Error fetching recent periods: \(error.localizedDescription)")
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }
 

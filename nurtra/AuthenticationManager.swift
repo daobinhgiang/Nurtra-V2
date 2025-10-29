@@ -180,7 +180,10 @@ class AuthenticationManager: ObservableObject {
     // MARK: - Overcome Count
     
     func fetchOvercomeCount() async {
-        guard let userId = user?.uid else { return }
+        guard let userId = user?.uid else { 
+            print("⚠️ No user ID available for fetching overcome count")
+            return 
+        }
         
         let db = Firestore.firestore()
         let docRef = db.collection("users").document(userId)
@@ -189,13 +192,15 @@ class AuthenticationManager: ObservableObject {
             let document = try await docRef.getDocument()
             if document.exists {
                 self.overcomeCount = document.data()?["overcomeCount"] as? Int ?? 0
+                print("✅ Successfully fetched overcome count: \(self.overcomeCount)")
             } else {
                 // Create document with initial count of 0
                 try await docRef.setData(["overcomeCount": 0])
                 self.overcomeCount = 0
+                print("📝 Created new user document with initial overcome count: 0")
             }
         } catch {
-            print("Error fetching overcome count: \(error.localizedDescription)")
+            print("❌ Error fetching overcome count: \(error.localizedDescription)")
             self.overcomeCount = 0
         }
     }

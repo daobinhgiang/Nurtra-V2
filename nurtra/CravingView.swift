@@ -153,11 +153,13 @@ struct CravingView: View {
                 HStack(spacing: 12) {
                     // Left: I just binged (red)
                     Button(action: {
-                        // Stop the timer if it's running
-                        if timerManager.isTimerRunning {
-                            timerManager.stopTimer()
+                        // Stop the timer and log the binge-free period
+                        Task {
+                            if timerManager.isTimerRunning {
+                                await timerManager.stopTimerAndLogPeriod()
+                            }
+                            showSurvey = true
                         }
-                        showSurvey = true
                     }) {
                         Text("I just binged")
                             .font(.headline)
@@ -217,7 +219,10 @@ struct CravingView: View {
             
             // Invisible navigation trigger
             NavigationLink(isActive: $showSurvey) {
-                BingeSurveyView()
+                BingeSurveyView(onComplete: {
+                    // When survey is complete, dismiss CravingView too
+                    dismiss()
+                })
             } label: {
                 EmptyView()
             }
