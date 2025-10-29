@@ -7,12 +7,102 @@
 
 import SwiftUI
 import AVFoundation
+import FamilyControls
+import ManagedSettings
 
 struct CravingView: View {
     @EnvironmentObject var timerManager: TimerManager
     @EnvironmentObject var authManager: AuthenticationManager
     @Environment(\.dismiss) var dismiss
     @State private var showSurvey = false
+    @StateObject private var firestoreManager = FirestoreManager()
+    @State private var elevenLabsService = ElevenLabsService()
+    @State private var quotes: [MotivationalQuote] = []
+    @State private var currentQuoteIndex: Int = 0
+    
+    // App blocking functionality
+    private let store = ManagedSettingsStore()
+    private let selectionKey = "savedFamilyActivitySelection"
+    private let lockStatusKey = "isAppsLocked"
+
+    private var currentQuote: String {
+        guard !quotes.isEmpty else { return "Loading..." }
+        return quotes[currentQuoteIndex].text
+    }
+    
+    private func playCurrentQuoteAndContinue() {
+        guard !quotes.isEmpty else { return }
+        
+        Task {
+            await elevenLabsService.playTextToSpeech(text: currentQuote) {
+                // Move to next quote
+                self.currentQuoteIndex = (self.currentQuoteIndex + 1) % self.quotes.count
+                // Play the next quote
+                self.playCurrentQuoteAndContinue()
+            }
+        }
+    }
+    
+    // MARK: - App Blocking Functions
+    
+    private func autoLockApps() {
+        // Check if apps are already locked
+        let isAlreadyLocked = UserDefaults.standard.bool(forKey: lockStatusKey)
+        
+        if isAlreadyLocked {
+            print("ℹ️ Apps are already locked, no action needed")
+            return
+        }
+        
+        // Load saved app selection
+        guard let data = UserDefaults.standard.data(forKey: selectionKey) else {
+            print("ℹ️ No saved app selection found")
+            return
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            let selectedApps = try decoder.decode(FamilyActivitySelection.self, from: data)
+            
+            // Check if there are any items to lock
+            let hasSelection = !selectedApps.applicationTokens.isEmpty ||
+                             !selectedApps.categoryTokens.isEmpty ||
+                             !selectedApps.webDomainTokens.isEmpty
+            
+            if !hasSelection {
+                print("ℹ️ No apps selected for blocking")
+                return
+            }
+            
+            // Apply app restrictions
+            store.shield.applications = selectedApps.applicationTokens
+            store.shield.applicationCategories = ShieldSettings.ActivityCategoryPolicy.specific(selectedApps.categoryTokens)
+            store.shield.webDomains = selectedApps.webDomainTokens
+            
+            // Update lock status
+            UserDefaults.standard.set(true, forKey: lockStatusKey)
+            
+            print("✅ Auto-locked apps in Craving view")
+            print("   - Apps: \(selectedApps.applicationTokens.count)")
+            print("   - Categories: \(selectedApps.categoryTokens.count)")
+            print("   - Web domains: \(selectedApps.webDomainTokens.count)")
+            
+        } catch {
+            print("❌ Failed to load and lock apps: \(error.localizedDescription)")
+        }
+    }
+    
+    private func autoUnlockApps() {
+        // Clear all restrictions
+        store.shield.applications = nil
+        store.shield.applicationCategories = nil
+        store.shield.webDomains = nil
+        
+        // Update lock status to false
+        UserDefaults.standard.set(false, forKey: lockStatusKey)
+        
+        print("✅ Auto-unlocked apps when exiting Craving view")
+    }
 
     var body: some View {
         ZStack {
@@ -39,6 +129,23 @@ struct CravingView: View {
                 .background(Color.black.opacity(0.6))
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .padding(.top, 20) // Reduced padding to move higher
+                
+                // Motivational Quote Display
+                VStack(spacing: 8) {
+                    Text(currentQuote)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.8)
+                }
+                .padding(.vertical, 12)
+                .padding(.horizontal, 20)
+                .background(Color.black.opacity(0.6))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
                 
                 Spacer()
                 
@@ -85,6 +192,27 @@ struct CravingView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .padding(.horizontal, 20)
                 .padding(.bottom, 50) // Safe area padding
+            }
+            .task {
+                // Auto-lock apps when entering craving view
+                autoLockApps()
+                
+                do {
+                    quotes = try await firestoreManager.fetchMotivationalQuotes()
+                    // Start playing quotes automatically
+                    if !quotes.isEmpty {
+                        playCurrentQuoteAndContinue()
+                    }
+                } catch {
+                    print("Error fetching quotes: \(error)")
+                }
+            }
+            .onDisappear {
+                // Stop audio when leaving the view
+                elevenLabsService.stopAudio()
+                
+                // Auto-unlock apps when exiting craving view
+                autoUnlockApps()
             }
             
             // Invisible navigation trigger

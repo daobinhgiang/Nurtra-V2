@@ -18,9 +18,14 @@ struct BlockAppsView: View {
     @State private var showAppPicker = false
     @State private var errorMessage: String?
     @State private var isLocked = false
+    @State private var isLoadingData = false
     
     private let center = AuthorizationCenter.shared
     private let store = ManagedSettingsStore()
+    
+    // Keys for UserDefaults persistence
+    private let selectionKey = "savedFamilyActivitySelection"
+    private let lockStatusKey = "isAppsLocked"
     
     enum AuthorizationStatus {
         case notDetermined
@@ -28,10 +33,42 @@ struct BlockAppsView: View {
         case authorized
     }
     
+    // Helper to check if any items are selected (apps, categories, or web domains)
+    private var hasSelection: Bool {
+        !selectedApps.applicationTokens.isEmpty ||
+        !selectedApps.categoryTokens.isEmpty ||
+        !selectedApps.webDomainTokens.isEmpty
+    }
+    
+    // Helper to get total count of selected items
+    private var selectionCount: Int {
+        selectedApps.applicationTokens.count +
+        selectedApps.categoryTokens.count +
+        selectedApps.webDomainTokens.count
+    }
+    
+    // Helper to get description of what's selected
+    private var selectionDescription: String {
+        var parts: [String] = []
+        if !selectedApps.applicationTokens.isEmpty {
+            parts.append("\(selectedApps.applicationTokens.count) app(s)")
+        }
+        if !selectedApps.categoryTokens.isEmpty {
+            parts.append("\(selectedApps.categoryTokens.count) category(s)")
+        }
+        if !selectedApps.webDomainTokens.isEmpty {
+            parts.append("\(selectedApps.webDomainTokens.count) web domain(s)")
+        }
+        return parts.joined(separator: ", ")
+    }
+    
     var body: some View {
         VStack(spacing: 20) {
             if isRequestingAuthorization {
                 ProgressView("Requesting Authorization...")
+                    .padding()
+            } else if isLoadingData {
+                ProgressView("Loading saved data...")
                     .padding()
             } else {
                 switch authorizationStatus {
@@ -54,8 +91,12 @@ struct BlockAppsView: View {
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
             checkAuthorizationStatus()
+            loadSelection()
         }
         .sheet(isPresented: $showAppPicker) {
+            // Save when sheet is dismissed
+            saveSelection()
+        } content: {
             NavigationView {
                 FamilyActivityPicker(selection: $selectedApps)
                     .navigationTitle("Select Apps to Block")
@@ -130,10 +171,10 @@ struct BlockAppsView: View {
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
             
-            if !selectedApps.applicationTokens.isEmpty {
+            if hasSelection {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        Text("Selected Apps")
+                        Text("Selected Items")
                             .font(.headline)
                         Spacer()
                         Text(isLocked ? "🔒 Locked" : "🔓 Unlocked")
@@ -141,7 +182,7 @@ struct BlockAppsView: View {
                             .fontWeight(.semibold)
                             .foregroundColor(isLocked ? .red : .green)
                     }
-                    Text("\(selectedApps.applicationTokens.count) app(s) selected")
+                    Text(selectionDescription + " selected")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -156,7 +197,7 @@ struct BlockAppsView: View {
             }) {
                 HStack {
                     Image(systemName: "plus.circle.fill")
-                    Text(selectedApps.applicationTokens.isEmpty ? "Select Apps to Block" : "Manage Blocked Apps")
+                    Text(hasSelection ? "Manage Blocked Items" : "Select Items to Block")
                 }
                 .font(.headline)
                 .foregroundColor(.white)
@@ -167,7 +208,7 @@ struct BlockAppsView: View {
             }
             .padding(.horizontal)
             
-            if !selectedApps.applicationTokens.isEmpty {
+            if hasSelection {
                 Button(action: {
                     if isLocked {
                         unlockApps()
@@ -177,7 +218,7 @@ struct BlockAppsView: View {
                 }) {
                     HStack {
                         Image(systemName: isLocked ? "lock.open.fill" : "lock.fill")
-                        Text(isLocked ? "Unlock Apps" : "Lock Apps")
+                        Text(isLocked ? "Unlock Items" : "Lock Items")
                     }
                     .font(.headline)
                     .foregroundColor(.white)
@@ -246,6 +287,7 @@ struct BlockAppsView: View {
         store.shield.webDomains = selectedApps.webDomainTokens
         
         isLocked = true
+        saveLockStatus()
     }
     
     private func unlockApps() {
@@ -255,6 +297,60 @@ struct BlockAppsView: View {
         store.shield.webDomains = nil
         
         isLocked = false
+        saveLockStatus()
+    }
+    
+    // MARK: - Persistence Methods
+    
+    private func saveSelection() {
+        do {
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(selectedApps)
+            UserDefaults.standard.set(data, forKey: selectionKey)
+            print("✅ Saved app selection to UserDefaults")
+        } catch {
+            print("❌ Failed to save selection: \(error.localizedDescription)")
+            errorMessage = "Failed to save selection"
+        }
+    }
+    
+    private func loadSelection() {
+        isLoadingData = true
+        
+        do {
+            if let data = UserDefaults.standard.data(forKey: selectionKey) {
+                let decoder = JSONDecoder()
+                selectedApps = try decoder.decode(FamilyActivitySelection.self, from: data)
+                print("✅ Loaded app selection from UserDefaults")
+                print("   - Apps: \(selectedApps.applicationTokens.count)")
+                print("   - Categories: \(selectedApps.categoryTokens.count)")
+                print("   - Web domains: \(selectedApps.webDomainTokens.count)")
+            }
+            
+            // Load lock status
+            isLocked = UserDefaults.standard.bool(forKey: lockStatusKey)
+            
+            // If items were locked, reapply the restrictions
+            if isLocked && hasSelection {
+                reapplyRestrictions()
+            }
+        } catch {
+            print("❌ Failed to load selection: \(error.localizedDescription)")
+            errorMessage = "Failed to load previous selection"
+        }
+        
+        isLoadingData = false
+    }
+    
+    private func saveLockStatus() {
+        UserDefaults.standard.set(isLocked, forKey: lockStatusKey)
+    }
+    
+    private func reapplyRestrictions() {
+        // Reapply restrictions if they were previously locked
+        store.shield.applications = selectedApps.applicationTokens
+        store.shield.applicationCategories = ShieldSettings.ActivityCategoryPolicy.specific(selectedApps.categoryTokens)
+        store.shield.webDomains = selectedApps.webDomainTokens
     }
 }
 
