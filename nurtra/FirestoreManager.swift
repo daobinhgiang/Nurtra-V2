@@ -156,19 +156,19 @@ class FirestoreManager: ObservableObject {
         
         let isRunning = data["timerIsRunning"] as? Bool ?? false
         let startTime = startTimeTimestamp.dateValue()
-        let elapsedTime = data["timerElapsedTime"] as? TimeInterval  // Fetch stored elapsed time
+        let stopTime = (data["timerStopTime"] as? Timestamp)?.dateValue()
         
-        return TimerData(startTime: startTime, isRunning: isRunning, elapsedTime: elapsedTime)
+        return TimerData(startTime: startTime, isRunning: isRunning, stopTime: stopTime)
     }
     
-    func stopTimer(elapsedTime: TimeInterval) async throws {
+    func stopTimer(stopTime: Date) async throws {
         guard let userId = Auth.auth().currentUser?.uid else {
             throw FirestoreError.noAuthenticatedUser
         }
         
         let timerData: [String: Any] = [
             "timerIsRunning": false,
-            "timerElapsedTime": elapsedTime,  // Store elapsed time when stopped
+            "timerStopTime": Timestamp(date: stopTime),
             "timerLastUpdated": Timestamp(date: Date())
         ]
         
@@ -182,6 +182,7 @@ class FirestoreManager: ObservableObject {
         
         let timerData: [String: Any] = [
             "timerStartTime": FieldValue.delete(),
+            "timerStopTime": FieldValue.delete(),
             "timerIsRunning": false,
             "timerLastUpdated": Timestamp(date: Date())
         ]
@@ -242,6 +243,28 @@ class FirestoreManager: ObservableObject {
             )
         }
     }
+    
+    // MARK: - Push Notification Methods
+    
+    func saveFCMToken(_ token: String) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw FirestoreError.noAuthenticatedUser
+        }
+        
+        let tokenData: [String: Any] = [
+            "fcmToken": token,
+            "fcmTokenUpdatedAt": Timestamp(date: Date()),
+            "platform": "iOS"
+        ]
+        
+        do {
+            try await db.collection("users").document(userId).setData(tokenData, merge: true)
+            print("✅ Successfully saved FCM token to Firestore")
+        } catch {
+            print("❌ Failed to save FCM token to Firestore: \(error.localizedDescription)")
+            throw FirestoreError.saveFailed
+        }
+    }
 }
 
 // MARK: - Data Models
@@ -267,7 +290,7 @@ struct MotivationalQuote: Identifiable {
 struct TimerData {
     let startTime: Date
     let isRunning: Bool
-    let elapsedTime: TimeInterval?  // Store the elapsed time when timer is stopped
+    let stopTime: Date?
 }
 
 struct BingeFreePeriod: Identifiable {

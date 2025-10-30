@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CA02C2302EB27E91008ECEE2 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = CA02C22F2EB27E91008ECEE2 /* FirebaseMessaging */; };
 		CA984C042EB11A4600582400 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = CA984C032EB11A4600582400 /* GoogleSignIn */; };
 		CA984C062EB11A4600582400 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = CA984C052EB11A4600582400 /* GoogleSignInSwift */; };
 		CA984C0A2EB11CAC00582400 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CA984C092EB11CAC00582400 /* FirebaseAnalytics */; };
@@ -96,6 +97,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA02C2302EB27E91008ECEE2 /* FirebaseMessaging in Frameworks */,
 				CA984C042EB11A4600582400 /* GoogleSignIn in Frameworks */,
 				CA984C122EB11CAC00582400 /* FirebaseFunctions in Frameworks */,
 				CA984C0E2EB11CAC00582400 /* FirebaseCore in Frameworks */,
@@ -176,6 +178,7 @@
 				CA984C0D2EB11CAC00582400 /* FirebaseCore */,
 				CA984C0F2EB11CAC00582400 /* FirebaseFirestore */,
 				CA984C112EB11CAC00582400 /* FirebaseFunctions */,
+				CA02C22F2EB27E91008ECEE2 /* FirebaseMessaging */,
 			);
 			productName = "Nurtra V2";
 			productReference = CA3395BE2EAFFCE8003BBE6E /* nurtra.app */;
@@ -427,6 +430,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
@@ -465,6 +469,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
@@ -597,6 +602,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		CA02C22F2EB27E91008ECEE2 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA984C072EB11B2200582400 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
 		CA984C032EB11A4600582400 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CA984C022EB11A4600582400 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;

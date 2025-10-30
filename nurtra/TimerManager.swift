@@ -49,15 +49,14 @@ class TimerManager: ObservableObject {
     }
     
     func stopTimer() async {
-        // Capture elapsed time before stopping
-        let currentElapsedTime = elapsedTime
+        let stopTime = Date()
         
         // Stop local timer immediately
         stopLocalTimer()
         
-        // Save the timer stop state to Firestore with elapsed time
+        // Save the timer stop state to Firestore with stop time
         do {
-            try await firestoreManager?.stopTimer(elapsedTime: currentElapsedTime)
+            try await firestoreManager?.stopTimer(stopTime: stopTime)
         } catch {
             print("Error saving timer stop to Firestore: \(error.localizedDescription)")
         }
@@ -78,7 +77,7 @@ class TimerManager: ObservableObject {
         
         // Now do the async Firestore operations
         do {
-            try await firestoreManager?.stopTimer(elapsedTime: duration)
+            try await firestoreManager?.stopTimer(stopTime: endTime)
             try await firestoreManager?.logBingeFreePeriod(
                 startTime: startTime,
                 endTime: endTime,
@@ -107,17 +106,18 @@ class TimerManager: ObservableObject {
                 timerStartTime = timerData.startTime
                 isTimerRunning = timerData.isRunning
                 
-                // If timer is not running and we have a stored elapsed time, use it
-                if !isTimerRunning, let storedElapsedTime = timerData.elapsedTime {
-                    elapsedTime = storedElapsedTime
-                } else if isTimerRunning {
-                    // Only recalculate if timer is running
+                if isTimerRunning {
+                    // Timer is running - calculate elapsed time and resume
                     updateElapsedTime()
-                    
-                    // Resume the timer
                     timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] _ in
                         self?.updateElapsedTime()
                     }
+                } else if let stopTime = timerData.stopTime {
+                    // Timer is stopped - use the stop time to calculate the frozen elapsed time
+                    elapsedTime = stopTime.timeIntervalSince(timerData.startTime)
+                } else {
+                    // Timer is stopped but no stop time recorded - calculate from current time
+                    updateElapsedTime()
                 }
             }
         } catch {
