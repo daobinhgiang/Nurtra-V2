@@ -77,10 +77,11 @@ class ElevenLabsService: NSObject {
             "text": text,
             "model_id": "eleven_multilingual_v2",
             "voice_settings": [
-                "stability": 0.5,
-                "similarity_boost": 0.75,
-                "style": 0.0,
-                "use_speaker_boost": true
+                "stability": 0.2,
+                "similarity_boost": 0.8,
+                "style": 0.7,
+                "use_speaker_boost": true,
+                "speed": 1.1
             ]
         ]
         
@@ -135,8 +136,11 @@ class ElevenLabsService: NSObject {
     // MARK: - Audio Control
     
     func stopAudio() {
+        print("🛑 Stopping audio playback and canceling callbacks")
         audioPlayer?.stop()
         audioPlayer = nil
+        // Clear the callback to prevent it from being called
+        onAudioFinished = nil
     }
     
     var isPlaying: Bool {

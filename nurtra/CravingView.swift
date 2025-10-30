@@ -19,6 +19,7 @@ struct CravingView: View {
     @State private var elevenLabsService = ElevenLabsService()
     @State private var quotes: [MotivationalQuote] = []
     @State private var currentQuoteIndex: Int = 0
+    @State private var isViewActive = false // Controls quote loop and audio generation
     
     // App blocking functionality
     private let store = ManagedSettingsStore()
@@ -31,10 +32,20 @@ struct CravingView: View {
     }
     
     private func playCurrentQuoteAndContinue() {
-        guard !quotes.isEmpty else { return }
+        // Check if view is still active before starting
+        guard isViewActive && !quotes.isEmpty else { 
+            print("🛑 Stopping quote loop - view is no longer active")
+            return 
+        }
         
         Task {
             await elevenLabsService.playTextToSpeech(text: currentQuote) {
+                // Check again if view is still active before continuing
+                guard self.isViewActive else {
+                    print("🛑 Stopping quote loop - view became inactive during playback")
+                    return
+                }
+                
                 // Move to next quote
                 self.currentQuoteIndex = (self.currentQuoteIndex + 1) % self.quotes.count
                 // Play the next quote
@@ -137,10 +148,8 @@ struct CravingView: View {
                         .fontWeight(.medium)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
-                        .lineLimit(3)
-                        .minimumScaleFactor(0.8)
                 }
-                .padding(.vertical, 12)
+                .padding(.vertical, 18)
                 .padding(.horizontal, 20)
                 .background(Color.black.opacity(0.6))
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -196,6 +205,10 @@ struct CravingView: View {
                 .padding(.bottom, 50) // Safe area padding
             }
             .task {
+                // Mark view as active
+                isViewActive = true
+                print("✅ Craving view is now active - starting quote loop")
+                
                 // Auto-lock apps when entering craving view
                 autoLockApps()
                 
@@ -210,6 +223,10 @@ struct CravingView: View {
                 }
             }
             .onDisappear {
+                // Mark view as inactive - this will stop the quote loop
+                isViewActive = false
+                print("🛑 Craving view is now inactive - stopping all processes")
+                
                 // Stop audio when leaving the view
                 elevenLabsService.stopAudio()
                 
