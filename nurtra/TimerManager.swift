@@ -69,11 +69,16 @@ class TimerManager: ObservableObject {
             return
         }
         
-        let endTime = Date()
-        let duration = elapsedTime
-        
-        // Stop the local timer IMMEDIATELY (synchronous) to prevent it from continuing
+        // Stop the local timer IMMEDIATELY (synchronous) FIRST to prevent it from continuing
         stopLocalTimer()
+        
+        // Now calculate duration from timestamps (not from elapsedTime which might be stale)
+        let endTime = Date()
+        let duration = endTime.timeIntervalSince(startTime)
+        
+        // Clear timer state to prevent any further updates
+        elapsedTime = duration
+        timerStartTime = nil
         
         // Now do the async Firestore operations
         do {
