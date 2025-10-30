@@ -79,7 +79,7 @@ class ElevenLabsService: NSObject {
             "voice_settings": [
                 "stability": 0.2,
                 "similarity_boost": 0.8,
-                "style": 0.3,
+                "style": 0.7,
                 "use_speaker_boost": true,
                 "speed": 1.1
             ]

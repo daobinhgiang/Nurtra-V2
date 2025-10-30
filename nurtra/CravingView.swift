@@ -148,10 +148,8 @@ struct CravingView: View {
                         .fontWeight(.medium)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
-                        .lineLimit(3)
-                        .minimumScaleFactor(0.8)
                 }
-                .padding(.vertical, 12)
+                .padding(.vertical, 18)
                 .padding(.horizontal, 20)
                 .background(Color.black.opacity(0.6))
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
