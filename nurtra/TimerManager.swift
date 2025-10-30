@@ -113,16 +113,26 @@ class TimerManager: ObservableObject {
                 
                 if isTimerRunning {
                     // Timer is running - calculate elapsed time and resume
+                    // IMPORTANT: Invalidate any existing timer first to prevent duplicates
+                    timer?.invalidate()
+                    timer = nil
+                    
                     updateElapsedTime()
                     timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] _ in
                         self?.updateElapsedTime()
                     }
-                } else if let stopTime = timerData.stopTime {
-                    // Timer is stopped - use the stop time to calculate the frozen elapsed time
-                    elapsedTime = stopTime.timeIntervalSince(timerData.startTime)
                 } else {
-                    // Timer is stopped but no stop time recorded - calculate from current time
-                    updateElapsedTime()
+                    // Timer is stopped - ensure no timer is running
+                    timer?.invalidate()
+                    timer = nil
+                    
+                    if let stopTime = timerData.stopTime {
+                        // Timer is stopped - use the stop time to calculate the frozen elapsed time
+                        elapsedTime = stopTime.timeIntervalSince(timerData.startTime)
+                    } else {
+                        // Timer is stopped but no stop time recorded - calculate from current time
+                        updateElapsedTime()
+                    }
                 }
             }
         } catch {
