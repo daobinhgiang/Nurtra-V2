@@ -171,6 +171,28 @@ struct BlockAppsView: View {
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
             
+            // Recommendation banner
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: "lightbulb.fill")
+                        .foregroundColor(.orange)
+                        .font(.title3)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Recommendation")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        Text("For best results, we recommend selecting \"All Apps & Categories\" to improve your symptoms and support your recovery journey.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.orange.opacity(0.1))
+            .cornerRadius(10)
+            .padding(.horizontal)
+            
             if hasSelection {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {

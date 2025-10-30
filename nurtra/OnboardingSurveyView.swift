@@ -12,6 +12,7 @@ struct OnboardingSurveyView: View {
     @StateObject private var firestoreManager = FirestoreManager()
     @State private var step: Int = 0
     @State private var isLoading = false
+    @State private var surveySubmitted = false
     
     // Focus for text fields
     private enum FocusedField: Hashable {
@@ -73,7 +74,7 @@ struct OnboardingSurveyView: View {
                 Text(titleForStep(step))
                     .font(.title2)
                     .fontWeight(.semibold)
-                ProgressView(value: Double(step + 1), total: 8)
+                ProgressView(value: Double(step + 1), total: 10)
             }
             .padding()
             .contentShape(Rectangle())
@@ -152,6 +153,14 @@ struct OnboardingSurveyView: View {
                     focus: .recoveryValuesOther
                 )
                 .tag(7)
+                
+                // Step 8: Explanation screen about Block Apps
+                blockAppsExplanationView()
+                    .tag(8)
+                
+                // Step 9: Block Apps View
+                BlockAppsView()
+                    .tag(9)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             
@@ -173,7 +182,7 @@ struct OnboardingSurveyView: View {
                         withAnimation { step += 1 }
                     }
                     .buttonStyle(PrimaryCapsuleStyle())
-                } else {
+                } else if step == 7 {
                     Button(action: {
                         Task {
                             await submitSurvey()
@@ -185,7 +194,7 @@ struct OnboardingSurveyView: View {
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 50)
                         } else {
-                            Text("Finish")
+                            Text("Continue")
                                 .fontWeight(.semibold)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 50)
@@ -193,6 +202,21 @@ struct OnboardingSurveyView: View {
                     }
                     .buttonStyle(PrimaryCapsuleStyle())
                     .disabled(isLoading)
+                } else if step == 8 {
+                    Button("Continue") {
+                        withAnimation { step += 1 }
+                    }
+                    .buttonStyle(PrimaryCapsuleStyle())
+                } else if step == 9 {
+                    Button(action: {
+                        authManager.markOnboardingComplete()
+                    }) {
+                        Text("Complete Setup")
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                    }
+                    .buttonStyle(PrimaryCapsuleStyle())
                 }
             }
             .padding()
@@ -215,6 +239,8 @@ struct OnboardingSurveyView: View {
         case 5: return "Your Triggers"
         case 6: return "Your Priorities"
         case 7: return "Your Values"
+        case 8: return "App Blocking Setup"
+        case 9: return "Select Apps to Block"
         default: return "Welcome"
         }
     }
@@ -314,11 +340,12 @@ struct OnboardingSurveyView: View {
             // Save to Firestore
             try await firestoreManager.saveOnboardingSurvey(responses: responses)
             
-            // Update auth manager to mark onboarding as complete
-            authManager.markOnboardingComplete()
-            
             // Generate motivational quotes in background (doesn't block user)
             QuoteGenerationService.generateQuotesInBackground(from: responses, firestoreManager: firestoreManager)
+            
+            // Mark survey as submitted and move to explanation screen
+            surveySubmitted = true
+            withAnimation { step = 8 }
             
         } catch {
             print("Error saving onboarding survey: \(error)")
@@ -326,6 +353,63 @@ struct OnboardingSurveyView: View {
         }
         
         isLoading = false
+    }
+    
+    @ViewBuilder
+    private func blockAppsExplanationView() -> some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                Image(systemName: "shield.checkered")
+                    .font(.system(size: 80))
+                    .foregroundColor(.blue)
+                    .padding(.top, 40)
+                
+                Text("App Blocking Feature")
+                    .font(.title)
+                    .fontWeight(.bold)
+                
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("To help you stay focused on your recovery journey, you'll now set up app blocking.")
+                        .font(.body)
+                        .foregroundColor(.primary)
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: "lock.shield.fill")
+                                .foregroundColor(.blue)
+                                .font(.title3)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("When You're Craving")
+                                    .font(.headline)
+                                Text("Apps will be blocked ONLY when you use the 'Craving!' feature, helping you stay focused on your recovery.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: "apps.iphone")
+                                .foregroundColor(.green)
+                                .font(.title3)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Normal Usage")
+                                    .font(.headline)
+                                Text("When you're not experiencing a craving, you can use all your apps normally.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
+                
+                Spacer()
+            }
+            .padding()
+        }
     }
 }
 

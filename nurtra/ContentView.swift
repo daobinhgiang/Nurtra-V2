@@ -38,15 +38,11 @@ struct MainAppView: View {
     @StateObject private var firestoreManager = FirestoreManager()
     @State private var navigationPath = NavigationPath()
     @State private var recentPeriods: [BingeFreePeriod] = []
-    @State private var isLoadingNotification = false
-    @State private var notificationMessage = ""
-    @State private var showNotificationAlert = false
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            ScrollView {
-            VStack {                
-                // Display overcome count
+            VStack(spacing: 0) {
+                // Top section with overcome count
                 VStack(spacing: 8) {
                     Text("Urge Overcame count")
                         .font(.headline)
@@ -56,38 +52,16 @@ struct MainAppView: View {
                         .foregroundColor(.blue)
                 }
                 .padding(.top, 20)
+                .padding(.bottom, 20)
                 
+                // Middle section - Timer Display (centered)
                 Spacer()
                 
-                // Timer Display - Centered in the middle of the screen
                 VStack(spacing: 20) {
                     Text(timerManager.timeString(from: timerManager.elapsedTime))
                         .font(.system(size: 60, weight: .bold, design: .rounded))
                         .foregroundColor(timerManager.isTimerRunning ? .green : .primary)
                         .monospacedDigit()
-                    
-                    // Only show button when timer is not running
-                    if !timerManager.isTimerRunning {
-                        Button(action: {
-                            Task {
-                                await timerManager.startTimer()
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "play.circle.fill")
-                                    .font(.title2)
-                                Text("Binge-free Timer")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.green)
-                            .cornerRadius(10)
-                        }
-                        .padding(.horizontal)
-                    }
                 }
                 
                 Spacer()
@@ -128,84 +102,64 @@ struct MainAppView: View {
                 
                 Spacer()
                 
-                NavigationLink(destination: CravingView()) {
-                    Text("Craving!")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                }
-                .padding(.horizontal)
-                
-                NavigationLink(destination: BlockAppsView()) {
-                    Text("Block Apps")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.purple)
-                        .cornerRadius(10)
-                }
-                .padding(.horizontal)
-                
-                // Test Motivational Notification Button
-                Button(action: {
-                    Task {
-                        await sendTestNotification()
-                    }
-                }) {
-                    HStack {
-                        if isLoadingNotification {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                .scaleEffect(0.8)
-                        } else {
-                            Image(systemName: "bell.fill")
-                                .font(.title3)
+                // Bottom section - Buttons
+                VStack(spacing: 12) {
+                    // Combined timer/craving button
+                    if !timerManager.isTimerRunning {
+                        Button(action: {
+                            Task {
+                                await timerManager.startTimer()
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "play.circle.fill")
+                                    .font(.title2)
+                                Text("Binge-free Timer")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.green)
+                            .cornerRadius(10)
                         }
-                        Text(isLoadingNotification ? "Sending..." : "Test Motivational Push")
-                            .font(.title3)
-                            .fontWeight(.semibold)
+                        .padding(.horizontal)
+                    } else {
+                        NavigationLink(destination: CravingView()) {
+                            Text("Craving!")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                        }
+                        .padding(.horizontal)
                     }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(isLoadingNotification ? Color.gray : Color.orange)
-                    .cornerRadius(10)
-                }
-                .disabled(isLoadingNotification)
-                .padding(.horizontal)
-                .alert("Notification Sent! 🎉", isPresented: $showNotificationAlert) {
-                    Button("OK", role: .cancel) { }
-                } message: {
-                    Text(notificationMessage)
-                }
-                
-                Button(action: {
-                    do {
-                        try authManager.signOut()
-                    } catch {
-                        print("Sign out error: \(error)")
+                    
+                    Button(action: {
+                        do {
+                            try authManager.signOut()
+                        } catch {
+                            print("Sign out error: \(error)")
+                        }
+                    }) {
+                        Text("Sign Out")
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(10)
                     }
-                }) {
-                    Text("Sign Out")
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundColor(.red)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
-                .padding(.top, 8)
+                .padding(.bottom, 20)
             }
             .padding()
-            }
             .refreshable {
                 // Allow pull-to-refresh
                 await fetchRecentPeriods()
@@ -243,20 +197,6 @@ struct MainAppView: View {
         return formatter.string(from: date)
     }
     
-    private func sendTestNotification() async {
-        isLoadingNotification = true
-        
-        do {
-            let message = try await firestoreManager.sendMotivationalNotification()
-            notificationMessage = "✅ Push notification sent successfully!\n\nMessage: \"\(message)\"\n\nCheck your notification tray to see it."
-            showNotificationAlert = true
-        } catch {
-            notificationMessage = "❌ Failed to send notification: \(error.localizedDescription)\n\nMake sure:\n1. Cloud function is deployed\n2. OpenAI API key is configured\n3. Notifications are enabled"
-            showNotificationAlert = true
-        }
-        
-        isLoadingNotification = false
-    }
 }
 
 #Preview {

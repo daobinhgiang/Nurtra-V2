@@ -130,3 +130,7 @@ node_modules
 # Node.js package lock files
 package-lock.json
 functions/package-lock.json
+
+# Xcode user data
+*.xcuserstate
+xcuserdata/
