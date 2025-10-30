@@ -38,11 +38,25 @@ struct MainAppView: View {
     @StateObject private var firestoreManager = FirestoreManager()
     @State private var navigationPath = NavigationPath()
     @State private var recentPeriods: [BingeFreePeriod] = []
+    @State private var showingSettings = false
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
             VStack(spacing: 0) {
-                // Top section with overcome count
+                // Top section with overcome count and settings icon
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        showingSettings = true
+                    }) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.title2)
+                            .foregroundColor(.blue)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 10)
+                
                 VStack(spacing: 8) {
                     Text("Urge Overcame count")
                         .font(.headline)
@@ -179,6 +193,10 @@ struct MainAppView: View {
                     await fetchRecentPeriods()
                 }
             }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+                    .environmentObject(authManager)
+            }
         }
     }
     
@@ -197,6 +215,88 @@ struct MainAppView: View {
         return formatter.string(from: date)
     }
     
+}
+
+struct SettingsView: View {
+    @EnvironmentObject var authManager: AuthenticationManager
+    @Environment(\.dismiss) private var dismiss
+    @State private var showingDeleteConfirmation = false
+    @State private var isDeleting = false
+    
+    var body: some View {
+        NavigationView {
+            List {
+                Section {
+                    HStack {
+                        Image(systemName: "person.circle.fill")
+                            .foregroundColor(.blue)
+                            .font(.title2)
+                        VStack(alignment: .leading) {
+                            Text("Account")
+                                .font(.headline)
+                            Text(authManager.user?.email ?? "Unknown")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
+                
+                Section {
+                    Button(action: {
+                        showingDeleteConfirmation = true
+                    }) {
+                        HStack {
+                            Image(systemName: "trash.fill")
+                                .foregroundColor(.red)
+                            Text("Delete Account")
+                                .foregroundColor(.red)
+                            Spacer()
+                        }
+                    }
+                    .disabled(isDeleting)
+                } header: {
+                    Text("Danger Zone")
+                } footer: {
+                    Text("This action cannot be undone. All your data will be permanently deleted.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+            .alert("Delete Account", isPresented: $showingDeleteConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    Task {
+                        await deleteAccount()
+                    }
+                }
+            } message: {
+                Text("Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.")
+            }
+        }
+    }
+    
+    private func deleteAccount() async {
+        isDeleting = true
+        do {
+            try await authManager.deleteAccount()
+            dismiss()
+        } catch {
+            print("Error deleting account: \(error)")
+            // You might want to show an error alert here
+        }
+        isDeleting = false
+    }
 }
 
 #Preview {

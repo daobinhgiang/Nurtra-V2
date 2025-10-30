@@ -242,6 +242,56 @@ class AuthenticationManager: ObservableObject {
         }
     }
     
+    // MARK: - Delete Account
+    
+    func deleteAccount() async throws {
+        guard let user = user else {
+            throw AuthError.noAuthenticatedUser
+        }
+        
+        do {
+            // First, delete all user data from Firestore
+            try await deleteUserData()
+            
+            // Then delete the authentication account
+            try await user.delete()
+            
+            // Update local state
+            self.user = nil
+            self.isAuthenticated = false
+            self.needsOnboarding = false
+            self.overcomeCount = 0
+            self.errorMessage = nil
+            
+            print("✅ Account successfully deleted")
+        } catch {
+            self.errorMessage = error.localizedDescription
+            print("❌ Error deleting account: \(error.localizedDescription)")
+            throw error
+        }
+    }
+    
+    private func deleteUserData() async throws {
+        guard let userId = user?.uid else {
+            throw AuthError.noAuthenticatedUser
+        }
+        
+        let db = Firestore.firestore()
+        
+        // Delete all documents in the user's bingeFreePeriods subcollection
+        let bingeFreePeriodsRef = db.collection("users").document(userId).collection("bingeFreePeriods")
+        let bingeFreePeriodsSnapshot = try await bingeFreePeriodsRef.getDocuments()
+        
+        for document in bingeFreePeriodsSnapshot.documents {
+            try await document.reference.delete()
+        }
+        
+        // Delete the main user document
+        try await db.collection("users").document(userId).delete()
+        
+        print("✅ User data successfully deleted from Firestore")
+    }
+    
     // MARK: - Onboarding Methods
     
     private func checkOnboardingStatus() async {
@@ -297,6 +347,7 @@ enum AuthError: LocalizedError {
     case invalidIDToken
     case invalidCredential
     case invalidNonce
+    case noAuthenticatedUser
     
     var errorDescription: String? {
         switch self {
@@ -312,6 +363,8 @@ enum AuthError: LocalizedError {
             return "Invalid credential"
         case .invalidNonce:
             return "Invalid nonce"
+        case .noAuthenticatedUser:
+            return "No authenticated user found"
         }
     }
 }
