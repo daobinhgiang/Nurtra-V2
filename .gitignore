@@ -125,3 +125,8 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+node_modules
+
+# Node.js package lock files
+package-lock.json
+functions/package-lock.json

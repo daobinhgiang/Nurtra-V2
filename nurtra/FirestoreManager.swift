@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
+import FirebaseFunctions
 import Combine
 
 @MainActor
@@ -265,6 +266,38 @@ class FirestoreManager: ObservableObject {
             throw FirestoreError.saveFailed
         }
     }
+    
+    // MARK: - Cloud Functions Methods
+    
+    func sendMotivationalNotification() async throws -> String {
+        guard Auth.auth().currentUser != nil else {
+            throw FirestoreError.noAuthenticatedUser
+        }
+        
+        // Call the cloud function
+        let functions = Functions.functions()
+        
+        do {
+            print("📱 Calling cloud function to send motivational notification...")
+            let result = try await functions.httpsCallable("sendMotivationalNotification").call()
+            
+            if let data = result.data as? [String: Any],
+               let success = data["success"] as? Bool,
+               let message = data["message"] as? String {
+                if success {
+                    print("✅ Successfully triggered notification")
+                    return message
+                } else {
+                    throw FirestoreError.cloudFunctionFailed
+                }
+            } else {
+                throw FirestoreError.cloudFunctionFailed
+            }
+        } catch {
+            print("❌ Failed to call cloud function: \(error.localizedDescription)")
+            throw FirestoreError.cloudFunctionFailed
+        }
+    }
 }
 
 // MARK: - Data Models
@@ -307,6 +340,7 @@ enum FirestoreError: LocalizedError {
     case noAuthenticatedUser
     case saveFailed
     case fetchFailed
+    case cloudFunctionFailed
     
     var errorDescription: String? {
         switch self {
@@ -316,6 +350,8 @@ enum FirestoreError: LocalizedError {
             return "Failed to save data to Firestore"
         case .fetchFailed:
             return "Failed to fetch data from Firestore"
+        case .cloudFunctionFailed:
+            return "Failed to call cloud function"
         }
     }
 }

@@ -38,6 +38,9 @@ struct MainAppView: View {
     @StateObject private var firestoreManager = FirestoreManager()
     @State private var navigationPath = NavigationPath()
     @State private var recentPeriods: [BingeFreePeriod] = []
+    @State private var isLoadingNotification = false
+    @State private var notificationMessage = ""
+    @State private var showNotificationAlert = false
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -148,6 +151,40 @@ struct MainAppView: View {
                         .cornerRadius(10)
                 }
                 .padding(.horizontal)
+                
+                // Test Motivational Notification Button
+                Button(action: {
+                    Task {
+                        await sendTestNotification()
+                    }
+                }) {
+                    HStack {
+                        if isLoadingNotification {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(0.8)
+                        } else {
+                            Image(systemName: "bell.fill")
+                                .font(.title3)
+                        }
+                        Text(isLoadingNotification ? "Sending..." : "Test Motivational Push")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(isLoadingNotification ? Color.gray : Color.orange)
+                    .cornerRadius(10)
+                }
+                .disabled(isLoadingNotification)
+                .padding(.horizontal)
+                .alert("Notification Sent! 🎉", isPresented: $showNotificationAlert) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text(notificationMessage)
+                }
+                
                 Button(action: {
                     do {
                         try authManager.signOut()
@@ -204,6 +241,21 @@ struct MainAppView: View {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+    
+    private func sendTestNotification() async {
+        isLoadingNotification = true
+        
+        do {
+            let message = try await firestoreManager.sendMotivationalNotification()
+            notificationMessage = "✅ Push notification sent successfully!\n\nMessage: \"\(message)\"\n\nCheck your notification tray to see it."
+            showNotificationAlert = true
+        } catch {
+            notificationMessage = "❌ Failed to send notification: \(error.localizedDescription)\n\nMake sure:\n1. Cloud function is deployed\n2. OpenAI API key is configured\n3. Notifications are enabled"
+            showNotificationAlert = true
+        }
+        
+        isLoadingNotification = false
     }
 }
 
