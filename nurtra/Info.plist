@@ -25,5 +25,7 @@
 	</array>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
 </dict>
 </plist>
