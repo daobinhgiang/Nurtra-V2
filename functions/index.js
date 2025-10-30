@@ -480,14 +480,14 @@ exports.sendNoonNotifications = functions.pubsub
   });
 
 /**
- * Scheduled Cloud Function: Send motivational notifications at 11:45pm EST
- * Runs daily at 11:45 PM Eastern Time (America/New_York timezone)
+ * Scheduled Cloud Function: Send motivational notifications at 17:00pm EST
+ * Runs daily at 17:00 PM Eastern Time (America/New_York timezone)
  */
 exports.sendNightNotifications = functions.pubsub
-  .schedule('45 23 * * *')
+  .schedule('00 17 * * *')
   .timeZone('America/New_York')
   .onRun(async (context) => {
-    console.log('🌙 Starting night notification batch (11:45pm EST)');
+    console.log('🌙 Starting night notification batch (17:00pm EST)');
     const startTime = Date.now();
     
     try {
